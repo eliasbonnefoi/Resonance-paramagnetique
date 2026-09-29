@@ -58,7 +58,7 @@ en résonance avec la cavité, ce qui trace une carte complète des positions de
 = simulation numérique. Croix rouges = données expérimentales mesurées lors des TP 2018
 (Table 1 du rapport).*
 
-**L'accord entre simulation et données expérimentales de 2018 est excellent**, ce qui valide
+**L'accord entre simulation et données expérimentales est excellent**, ce qui valide
 à la fois la valeur `D = 5,73 GHz` et la pertinence du modèle de spin effectif `S = 3/2` avec
 champ cristallin axial pour décrire l'ion Cr³⁺ dans le rubis. Certaines branches disparaissent
 à `θ = 60°` et `80°` car les transitions correspondantes sortent de la fenêtre de champ
