@@ -10,26 +10,19 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.constants import hbar, k, e, m_e, physical_constants
 
-# Constantes physiques
-mu_B = physical_constants['Bohr magneton'][0]   # J/T
-h    = physical_constants['Planck constant'][0]  # J.s
-g_e  = 2.0023   # facteur de Landé electron libre
+mu_B = physical_constants['Bohr magneton'][0]
+h    = physical_constants['Planck constant'][0]
+g_e  = 2.0023
 
-# Champ cristallin
-D_freq = 5.73e9   # Hz
+D_freq = 5.73e9
 D = D_freq
 
-f_cav = 9.19e9   # Hz, fréquence de la cavité
-
-# -------------------------------------------------------
-# Opérateurs de spin
-# -------------------------------------------------------
+f_cav = 9.19e9
 
 S_val = 3/2
 ms_vals = np.array([3/2, 1/2, -1/2, -3/2])
 
 def construire_operateurs_spin(S=3/2):
-    # Construit Sx, Sy, Sz dans la base standard {|S,ms>}
     dim = int(2*S + 1)
     ms = np.array([S - i for i in range(dim)])
 
@@ -50,14 +43,13 @@ def construire_operateurs_spin(S=3/2):
 Sx, Sy, Sz, S2, Sp, Sm = construire_operateurs_spin(S=3/2)
 
 
-# H/h = D*(Sz^2 - S^2/3) + (g*mu_B*B0/h)*(cos(theta)*Sz + sin(theta)*Sx)
 def hamiltonien(B0_G, theta_deg):
-    B0 = B0_G * 1e-4   # Gauss -> Tesla
+    B0 = B0_G * 1e-4
     theta = np.radians(theta_deg)
 
     H_cf = D * (Sz @ Sz - S2 / 3.)
 
-    prefact = g_e * mu_B * B0 / h   # en Hz
+    prefact = g_e * mu_B * B0 / h
     H_Z = prefact * (np.cos(theta)*Sz + np.sin(theta)*Sx)
 
     return H_cf + H_Z
@@ -69,17 +61,13 @@ def diagonaliser(B0_G, theta_deg):
     return vals[idx], vecs[:, idx]
 
 
-# -------------------------------------------------------
-# Question 2a — niveaux d'énergie pour theta=40°
-# -------------------------------------------------------
-
 theta_2a = 40.
-B0_range = np.linspace(0, 6000, 600)   # en Gauss
+B0_range = np.linspace(0, 6000, 600)
 
 energies_2a = np.zeros((len(B0_range), 4))
 for i, B0 in enumerate(B0_range):
     vals, _ = diagonaliser(B0, theta_2a)
-    energies_2a[i, :] = vals / 1e9   # GHz
+    energies_2a[i, :] = vals / 1e9
 
 fig, ax = plt.subplots(figsize=(8, 5))
 couleurs = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
@@ -98,7 +86,6 @@ ax.grid(alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-# Vecteurs propres à B0=0 et B0=6000 G
 print("\n=== Vecteurs propres à B0=0 G (theta=40°) ===")
 vals0, vecs0 = diagonaliser(0, theta_2a)
 base = ['|3/2>', '|1/2>', '|-1/2>', '|-3/2>']
@@ -114,7 +101,6 @@ for j in range(4):
     expr = " + ".join([f"{c[k]:.3f}·{base[k]}" for k in range(4) if abs(c[k]) > 0.01])
     print(f"  |E{j+1}> = {expr}   (E={vals6[j]/1e9:.3f} GHz)")
 
-# Compter les transitions à f_cav
 print(f"\n=== Transitions à f_cav={f_cav/1e9} GHz pour theta={theta_2a}° ===")
 n_trans = 0
 for i in range(4):
@@ -127,10 +113,6 @@ for i in range(4):
                 break
 print(f"  -> {n_trans} transitions visibles")
 
-
-# -------------------------------------------------------
-# Question 2c — carte des transitions dans (theta, B0)
-# -------------------------------------------------------
 
 theta_range = np.linspace(0, 190, 191)
 B0_fin = np.linspace(0, 6000, 1200)
@@ -150,7 +132,6 @@ for th in theta_range:
 fig2, ax2 = plt.subplots(figsize=(9, 6))
 ax2.scatter(pts_theta, pts_B0, s=1, color='tab:blue', alpha=0.6)
 
-# Données expérimentales 2018
 donnees_exp = {
     0:  [750, 1050, 3700, 3300],
     20: [1050, 2620, 4220, 5750],
@@ -178,27 +159,20 @@ plt.tight_layout()
 plt.show()
 
 
-# -------------------------------------------------------
-# Question 3 — Couplage spin-cavité Ω(T)
-# -------------------------------------------------------
-
-# Estimation du nombre de spins Cr dans 1 mm³ à 0.1% de dopage
-rho_rubis   = 3.98e3       # kg/m³
-V_ech       = 1e-9         # m³ (1 mm³)
-M_Al2O3     = (2*26.98 + 3*16.) * 1e-3   # kg/mol
+rho_rubis   = 3.98e3
+V_ech       = 1e-9
+M_Al2O3     = (2*26.98 + 3*16.) * 1e-3
 N_A         = 6.022e23
 n_Al2O3     = (rho_rubis / M_Al2O3) * N_A
-n_Cr        = 0.001 * 2 * n_Al2O3   # 0.1% de Cr substitué sur site Al
+n_Cr        = 0.001 * 2 * n_Al2O3
 N_spins     = int(n_Cr * V_ech)
 print(f"\n=== Nombre de spins Cr dans 1 mm³ : N = {N_spins:.3e} ===")
 
-b1 = 100e-12   # amplitude champ ac, 100 pT
+b1 = 100e-12
 kB = k
 
 
 def facteur_polarisation(Ea_Hz, Eb_Hz, niveaux_Hz, T):
-    # p_ab = (exp(-Ea/kT) - exp(-Eb/kT)) / Z
-    # on soustrait le min pour éviter les overflows à basse T
     E = np.array(niveaux_Hz) * h
     E0 = np.min(E)
     Z = np.sum(np.exp(-(E - E0) / (kB * T)))
@@ -212,7 +186,6 @@ def elem_matrice_Sy(vec_a, vec_b):
 
 
 def calculer_omega(theta_deg, T_arr):
-    # Cherche toutes les résonances à cet angle puis calcule Ω(T)
     B0_scan = np.linspace(0, 6000, 2400)
     paires  = []
 
@@ -237,9 +210,8 @@ def calculer_omega(theta_deg, T_arr):
     return resultats
 
 
-T_arr = np.logspace(np.log10(0.01), np.log10(30), 300)   # de 10 mK à 30 K
+T_arr = np.logspace(np.log10(0.01), np.log10(30), 300)
 
-# theta = 36°
 fig3, ax3 = plt.subplots(figsize=(8, 5))
 res_36 = calculer_omega(36, T_arr)
 coul_trans = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
@@ -255,7 +227,6 @@ ax3.grid(alpha=0.3, which='both')
 plt.tight_layout()
 plt.show()
 
-# theta = 98°
 fig4, ax4 = plt.subplots(figsize=(8, 5))
 res_98 = calculer_omega(98, T_arr)
 for nr, (i, j, Omega_T) in enumerate(res_98):
